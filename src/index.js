@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.css';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
+import { Canvas, useFrame } from 'react-three-fiber'
 import './index.css';
 // const d3 = require('d3');
 
@@ -10,10 +11,30 @@ import './index.css';
 // const xAxisLabelOffset = 50;
 // const yAxisLabelOffset = 45;
 
+const Thing = () => {
+  const ref = useRef();
+  useFrame(() => (ref.current.rotation.x = ref.current.rotation.y += 0.01));
+  return (
+    <mesh
+      ref={ref}
+      onClick={e => console.log('click')}
+      onPointerOver={e => console.log('hover')}
+      onPointerOut={e => console.log('unhover')}
+    >
+      <boxBufferGeometry attach='geometry' args={[2,2,2]} />
+      <meshNormalMaterial attach='material' />
+    </mesh>
+  );
+};
+
 const App = () => {
   return (
     <div>
-      <p>Yay</p>
+      <p>Testing :)</p>
+      <Canvas
+      >
+        <Thing />
+      </Canvas>
     </div>
   );
 };
