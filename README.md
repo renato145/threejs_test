@@ -1,2 +1,2 @@
 # threejs_test
-playing with threejs
+Playing with threejs
