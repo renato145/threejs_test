@@ -1,7 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { Canvas, useThree, useUpdate, useFrame } from 'react-three-fiber';
+import { Canvas, useThree,  useFrame } from 'react-three-fiber';
 import { animated, useSpring } from 'react-spring-three';
 import './index.css';
 const THREE = require('three');
@@ -12,7 +12,7 @@ const width = 800;
 const fov = 30;
 const near = 10;
 const far = 100;
-const nPoints = 20;
+const nPoints = 30;
 const randomScale = 40;
 const pointsSize = 10;
 const colors = ['hotpink', 'skyblue', 'indianred', 'forestgreen', 'thistle'];
@@ -73,7 +73,7 @@ const Scene = ({ points }) => {
   return (
     <mesh>
       <points>
-        <bufferGeometry attach='geometry' ref={geometryRef} onPointerOver={() => console.log('asd')} >
+        <bufferGeometry attach='geometry' ref={geometryRef} >
           <bufferAttribute
             attachObject={['attributes', 'position']}
             count={points.length / 3}
@@ -93,10 +93,14 @@ const Scene = ({ points }) => {
 };
 
 const App = () => {
+  const ref = useRef();
   const [ points, setPoints ] = useState(getRandomPoints());
+  useEffect(() => {
+    console.log(ref.current.clientWidth);
+  });
 
   return (
-    <div style={{width: width, height: height}}>
+    <div ref={ref} style={{width: width, height: height}}>
       <Canvas>
         <Scene points={points}/>
       </Canvas>
