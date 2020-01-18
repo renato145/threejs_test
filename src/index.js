@@ -29,19 +29,11 @@ const getRandomPoints = () => {
 };
 
 const Scene = ({ points }) => {
-  const ref = useRef();
   const { scene, camera } = useThree();
-  const [ hovered, setHover] = useState(false);
-
-  const geometryRef = useUpdate( geometry => {
-    geometry.attributes.position.needsUpdate = true;
-  }, [ points ]);
-
-  const hoverProps = useSpring({
-    'material-size': hovered ? pointsSize*2 : pointsSize,
-  });
+  const geometryRef = useRef();
 
   const [ { positions }, setSpring ] = useSpring(() => ({
+    // initial position
     positions: new Array(nPoints*3).fill(0)
   }));
 
@@ -63,20 +55,12 @@ const Scene = ({ points }) => {
   scene.background = new THREE.Color(0xefefef);
 
   return (
-    <mesh
-      ref={ref}
-    >
-      <animated.points
-        onClick={() => setHover(!hovered)}
-        onHover={() => setHover(true)}
-        onUnHover={() => setHover(false)}
-        {...hoverProps}
-      >
-        <bufferGeometry attach='geometry' ref={geometryRef}>
+    <mesh>
+      <animated.points >
+        <bufferGeometry attach='geometry' ref={geometryRef} >
           <bufferAttribute
             attachObject={['attributes', 'position']}
             count={points.length / 3}
-            array={new Float32Array(positions.getValue(), 3)}
             itemSize={3}
             usage={THREE.DynamicDrawUsage}
           />
