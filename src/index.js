@@ -12,9 +12,9 @@ const width = 800;
 const fov = 30;
 const near = 10;
 const far = 100;
-const nPoints = 200;
+const nPoints = 20;
 const randomScale = 40;
-const pointsSize = 5;
+const pointsSize = 10;
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
 
@@ -32,6 +32,8 @@ const Scene = ({ points }) => {
   const { scene, camera } = useThree();
   const geometryRef = useRef();
 
+  const positionsArray = useMemo(() => new Float32Array(nPoints*3), []);
+
   const [ { positions }, setSpring ] = useSpring(() => ({
     // initial position
     positions: new Array(nPoints*3).fill(0)
@@ -42,7 +44,9 @@ const Scene = ({ points }) => {
   }, [ points, setSpring ]);
 
   useFrame(() => {
-    geometryRef.current.attributes.position.array = new Float32Array(positions.getValue(), 3);
+    positions.getValue().forEach((v,i) => {
+      geometryRef.current.attributes.position.array[i] = v;
+    });
     geometryRef.current.attributes.position.needsUpdate = true;
   });
 
@@ -56,17 +60,18 @@ const Scene = ({ points }) => {
 
   return (
     <mesh>
-      <animated.points >
-        <bufferGeometry attach='geometry' ref={geometryRef} >
+      <points>
+        <bufferGeometry attach='geometry' ref={geometryRef} onPointerOver={() => console.log('asd')} >
           <bufferAttribute
             attachObject={['attributes', 'position']}
             count={points.length / 3}
+            array={positionsArray}
             itemSize={3}
             usage={THREE.DynamicDrawUsage}
           />
           </bufferGeometry>
         <pointsMaterial attach='material' size={pointsSize} color='hotpink' />
-      </animated.points>
+      </points>
     </mesh>
   );
 };
