@@ -15,6 +15,7 @@ const far = 100;
 const nPoints = 20;
 const randomScale = 40;
 const pointsSize = 10;
+const colors = ['hotpink', 'skyblue', 'indianred', 'forestgreen', 'thistle'];
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
 
@@ -31,6 +32,8 @@ const getRandomPoints = () => {
 const Scene = ({ points }) => {
   const { scene, camera } = useThree();
   const geometryRef = useRef();
+  const [ colorIdx, setColorIdx ] = useState(0);
+  const [ firstRender, setFirstRender ] = useState(true);
 
   const positionsArray = useMemo(() => new Float32Array(nPoints*3), []);
 
@@ -39,8 +42,17 @@ const Scene = ({ points }) => {
     positions: new Array(nPoints*3).fill(0)
   }));
 
+  const colorProps = useSpring({
+    'color': colors[colorIdx]
+  });
+
   useEffect(() => {
     setSpring({ positions: points });
+    setFirstRender(isFirstRender => {
+      if (!isFirstRender)
+        setColorIdx(d => (d+1) % colors.length);
+      return false;
+    });
   }, [ points, setSpring ]);
 
   useFrame(() => {
@@ -70,7 +82,11 @@ const Scene = ({ points }) => {
             usage={THREE.DynamicDrawUsage}
           />
           </bufferGeometry>
-        <pointsMaterial attach='material' size={pointsSize} color='hotpink' />
+        <animated.pointsMaterial
+          attach='material'
+          size={pointsSize}
+          {...colorProps}
+        />
       </points>
     </mesh>
   );
