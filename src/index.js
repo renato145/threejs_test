@@ -9,9 +9,11 @@ const THREE = require('three');
 
 const height = 500;
 const width = 800;
+// camera settings
 const fov = 30;
 const near = 10;
 const far = 100;
+// points generation
 const nPoints = 30;
 const randomScale = 40;
 const pointsSize = 10;
@@ -31,6 +33,7 @@ const getRandomPoints = () => {
 
 const Scene = ({ points }) => {
   const { scene, camera } = useThree();
+  const ref = useRef();
   const geometryRef = useRef();
   const [ colorIdx, setColorIdx ] = useState(0);
   const [ firstRender, setFirstRender ] = useState(true);
@@ -53,6 +56,7 @@ const Scene = ({ points }) => {
         setColorIdx(d => (d+1) % colors.length);
       return false;
     });
+    console.log(ref);
   }, [ points, setSpring ]);
 
   useFrame(() => {
@@ -63,7 +67,7 @@ const Scene = ({ points }) => {
   });
 
   camera.fov = fov;
-  camera.aspect = width / height;
+  // camera.aspect = width / height;
   camera.near = near;
   camera.far = far;
   camera.position.set(0, 0, far);
@@ -71,7 +75,7 @@ const Scene = ({ points }) => {
   scene.background = new THREE.Color(0xefefef);
 
   return (
-    <mesh>
+    <mesh ref={ref} >
       <points>
         <bufferGeometry attach='geometry' ref={geometryRef} >
           <bufferAttribute
@@ -96,11 +100,14 @@ const App = () => {
   const ref = useRef();
   const [ points, setPoints ] = useState(getRandomPoints());
   useEffect(() => {
-    console.log(ref.current.clientWidth);
+    // console.log(ref.current.clientWidth);
+    console.log(ref);
+    console.log(window.innerWidth);
   });
 
   return (
-    <div ref={ref} style={{width: width, height: height}}>
+    <div ref={ref} >
+      {/* style={{width: width, height: height}}> */}
       <Canvas>
         <Scene points={points}/>
       </Canvas>
