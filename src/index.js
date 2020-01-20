@@ -7,16 +7,14 @@ import './index.css';
 const THREE = require('three');
 // const d3 = require('d3');
 
-const height = 500;
-const width = 800;
 // camera settings
 const fov = 30;
 const near = 10;
 const far = 100;
 // points generation
-const nPoints = 30;
-const randomScale = 40;
-const pointsSize = 10;
+const nPoints = 100;
+const randomScale = 50;
+const pointsSize = 5;
 const colors = ['hotpink', 'skyblue', 'indianred', 'forestgreen', 'thistle'];
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
@@ -32,14 +30,14 @@ const getRandomPoints = () => {
 };
 
 const Scene = ({ points }) => {
-  const { scene, camera } = useThree();
-  const ref = useRef();
+  const { scene, camera, aspect } = useThree();
+  // const { scene, camera } = useThree();
   const geometryRef = useRef();
   const [ colorIdx, setColorIdx ] = useState(0);
   const [ firstRender, setFirstRender ] = useState(true);
 
+  // Set up position array
   const positionsArray = useMemo(() => new Float32Array(nPoints*3), []);
-
   const [ { positions }, setSpring ] = useSpring(() => ({
     // initial position
     positions: new Array(nPoints*3).fill(0)
@@ -56,26 +54,28 @@ const Scene = ({ points }) => {
         setColorIdx(d => (d+1) % colors.length);
       return false;
     });
-    console.log(ref);
   }, [ points, setSpring ]);
 
+  // Animate point change
   useFrame(() => {
     positions.getValue().forEach((v,i) => {
-      geometryRef.current.attributes.position.array[i] = v;
+      const value = (i%3) === 0 ? v*aspect : v; // consider aspect
+      geometryRef.current.attributes.position.array[i] = value;
     });
     geometryRef.current.attributes.position.needsUpdate = true;
   });
 
-  camera.fov = fov;
-  // camera.aspect = width / height;
-  camera.near = near;
-  camera.far = far;
-  camera.position.set(0, 0, far);
-  camera.updateProjectionMatrix();
-  scene.background = new THREE.Color(0xefefef);
+  useEffect(() => {
+    camera.fov = fov;
+    camera.near = near;
+    camera.far = far;
+    camera.position.set(0, 0, far);
+    camera.updateProjectionMatrix();
+    scene.background = new THREE.Color(0xefefef);
+  }, [ scene, camera ]);
 
   return (
-    <mesh ref={ref} >
+    <mesh>
       <points>
         <bufferGeometry attach='geometry' ref={geometryRef} >
           <bufferAttribute
@@ -97,17 +97,9 @@ const Scene = ({ points }) => {
 };
 
 const App = () => {
-  const ref = useRef();
   const [ points, setPoints ] = useState(getRandomPoints());
-  useEffect(() => {
-    // console.log(ref.current.clientWidth);
-    console.log(ref);
-    console.log(window.innerWidth);
-  });
-
   return (
-    <div ref={ref} >
-      {/* style={{width: width, height: height}}> */}
+    <div className='canvas-container'>
       <Canvas>
         <Scene points={points}/>
       </Canvas>
