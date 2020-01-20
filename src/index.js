@@ -16,6 +16,7 @@ const nPoints = 100;
 const randomScale = 50;
 const pointsSize = 5;
 const colors = ['hotpink', 'skyblue', 'indianred', 'forestgreen', 'thistle'];
+const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png')
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
 
@@ -89,6 +90,9 @@ const Scene = ({ points }) => {
         <animated.pointsMaterial
           attach='material'
           size={pointsSize}
+          map={sprite}
+          transparent={true}
+          alphaTest={0.5}
           {...colorProps}
         />
       </points>
