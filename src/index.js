@@ -2,7 +2,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Canvas, useThree,  useFrame } from 'react-three-fiber';
-import { animated, useSpring } from 'react-spring-three';
+import { useSpring } from 'react-spring-three';
 import './index.css';
 const THREE = require('three');
 // const d3 = require('d3');
@@ -15,7 +15,7 @@ const far = 100;
 const nPoints = 100;
 const randomScale = 50;
 const pointsSize = 25;
-const colors = ['hotpink', 'skyblue', 'indianred', 'forestgreen', 'thistle'];
+const colors = ['mediumslateblue', 'indianred', 'darkseagreen'];
 const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png')
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
@@ -37,59 +37,42 @@ const getRandomColors = () => {
   });
   return colors;
 };
-console.log(getRandomColors());
-const getRandomColorsArray = () => Array(nPoints).fill().map(() => getRandomColor());
 
 const Scene = ({ points, colors }) => {
   const { scene, camera, aspect } = useThree();
   const geometryRef = useRef();
-  // const [ colorIdx, setColorIdx ] = useState(0);
-  // const [ firstRender, setFirstRender ] = useState(true);
 
-  // Set up position array
+  // Initialize arrays
   const positionsArray = useMemo(() => new Float32Array(nPoints*3), []);
-  const [ { positions }, setSpring ] = useSpring(() => ({
+  const colorsArray = useMemo(() => new Float32Array(nPoints*3), []);
+
+  // Initialize springs
+  const [ { pointsSpring, colorsSpring }, setSpring ] = useSpring(() => ({
     // initial position
-    positions: new Array(nPoints*3).fill(0)
+    pointsSpring: new Array(nPoints*3).fill(0),
+    colorsSpring: new Array(nPoints*3).fill(1)
   }));
 
-  // Initialize colors
-  const colorsArray = useMemo(() => new Float32Array(nPoints*3), []);
-  const ccc = useMemo(() => {
-    return new THREE.BufferAttribute( colorsArray, 3, true)
-  }, [ colors ]);
-
-  // const colorsArray = useMemo(() => { 
-  //   const temp = colors.map(color => new THREE.Color(color));
-  //   const t =  new THREE.BufferAttribute().copyColorsArray(temp);
-  //   console.log(temp);
-  //   return temp;
-  // }, [ colors ]);
-
-  // console.log(colorsArray);
-  // const colorProps = useSpring({
-  //   'color': colors[colorIdx]
-  // });
-
+  // Animation effects
   useEffect(() => {
-    setSpring({ positions: points });
-    console.log(geometryRef.current);
+    setSpring({ pointsSpring: points });
   }, [ points, setSpring ]);
 
   useEffect(() => {
-    colors.forEach((v,i) => {
-      geometryRef.current.attributes.color.array[i] = v;
-    });
-    geometryRef.current.attributes.color.needsUpdate = true;
-  }, [ colors ]);
+    setSpring({ colorsSpring: colors });
+  }, [ colors, setSpring ]);
 
   // Animate point change
   useFrame(() => {
-    positions.getValue().forEach((v,i) => {
+    pointsSpring.getValue().forEach((v,i) => {
       const value = (i%3) === 0 ? v*aspect : v; // consider aspect
       geometryRef.current.attributes.position.array[i] = value;
     });
+    colorsSpring.getValue().forEach((v,i) => {
+      geometryRef.current.attributes.color.array[i] = v;
+    })
     geometryRef.current.attributes.position.needsUpdate = true;
+    geometryRef.current.attributes.color.needsUpdate = true;
   });
 
   useEffect(() => {
@@ -107,7 +90,6 @@ const Scene = ({ points, colors }) => {
         <bufferGeometry
           attach='geometry'
           ref={geometryRef}
-          // attributes-color={ccc}
         >
           <bufferAttribute
             attachObject={['attributes', 'position']}
@@ -122,7 +104,6 @@ const Scene = ({ points, colors }) => {
             array={colorsArray}
             itemSize={3}
             usage={THREE.DynamicDrawUsage}
-            // normalized={true}
           />
         </bufferGeometry>
         <pointsMaterial
@@ -132,7 +113,7 @@ const Scene = ({ points, colors }) => {
           transparent={true}
           alphaTest={0.5}
           sizeAttenuation={false}
-          vertexColor={THREE.VertexColors}
+          vertexColors={THREE.VertexColors}
         />
       </points>
     </mesh>
