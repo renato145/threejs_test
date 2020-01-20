@@ -14,28 +14,37 @@ const far = 100;
 // points generation
 const nPoints = 100;
 const randomScale = 50;
-const pointsSize = 5;
+const pointsSize = 25;
 const colors = ['hotpink', 'skyblue', 'indianred', 'forestgreen', 'thistle'];
 const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png')
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
 
 const getRandomPoints = () => {
-  const positions = []
+  let positions = []
   Array(nPoints).fill().forEach(() => {
-    positions.push(getRandomNumber());
-    positions.push(getRandomNumber());
-    positions.push(0);
+    positions.push(getRandomNumber(), getRandomNumber(), 0);
   });
   return positions;
 };
 
-const Scene = ({ points }) => {
+const getRandomColor = () => new THREE.Color(colors[parseInt(Math.random() * colors.length)]);
+const getRandomColors = () => {
+  let colors = []
+  Array(nPoints).fill().forEach(() => {
+    const {r,g,b} = getRandomColor();
+    colors.push(r,g,b);
+  });
+  return colors;
+};
+console.log(getRandomColors());
+const getRandomColorsArray = () => Array(nPoints).fill().map(() => getRandomColor());
+
+const Scene = ({ points, colors }) => {
   const { scene, camera, aspect } = useThree();
-  // const { scene, camera } = useThree();
   const geometryRef = useRef();
-  const [ colorIdx, setColorIdx ] = useState(0);
-  const [ firstRender, setFirstRender ] = useState(true);
+  // const [ colorIdx, setColorIdx ] = useState(0);
+  // const [ firstRender, setFirstRender ] = useState(true);
 
   // Set up position array
   const positionsArray = useMemo(() => new Float32Array(nPoints*3), []);
@@ -44,18 +53,35 @@ const Scene = ({ points }) => {
     positions: new Array(nPoints*3).fill(0)
   }));
 
-  const colorProps = useSpring({
-    'color': colors[colorIdx]
-  });
+  // Initialize colors
+  const colorsArray = useMemo(() => new Float32Array(nPoints*3), []);
+  const ccc = useMemo(() => {
+    return new THREE.BufferAttribute( colorsArray, 3, true)
+  }, [ colors ]);
+
+  // const colorsArray = useMemo(() => { 
+  //   const temp = colors.map(color => new THREE.Color(color));
+  //   const t =  new THREE.BufferAttribute().copyColorsArray(temp);
+  //   console.log(temp);
+  //   return temp;
+  // }, [ colors ]);
+
+  // console.log(colorsArray);
+  // const colorProps = useSpring({
+  //   'color': colors[colorIdx]
+  // });
 
   useEffect(() => {
     setSpring({ positions: points });
-    setFirstRender(isFirstRender => {
-      if (!isFirstRender)
-        setColorIdx(d => (d+1) % colors.length);
-      return false;
-    });
+    console.log(geometryRef.current);
   }, [ points, setSpring ]);
+
+  useEffect(() => {
+    colors.forEach((v,i) => {
+      geometryRef.current.attributes.color.array[i] = v;
+    });
+    geometryRef.current.attributes.color.needsUpdate = true;
+  }, [ colors ]);
 
   // Animate point change
   useFrame(() => {
@@ -78,7 +104,11 @@ const Scene = ({ points }) => {
   return (
     <mesh>
       <points>
-        <bufferGeometry attach='geometry' ref={geometryRef} >
+        <bufferGeometry
+          attach='geometry'
+          ref={geometryRef}
+          // attributes-color={ccc}
+        >
           <bufferAttribute
             attachObject={['attributes', 'position']}
             count={points.length / 3}
@@ -86,14 +116,23 @@ const Scene = ({ points }) => {
             itemSize={3}
             usage={THREE.DynamicDrawUsage}
           />
-          </bufferGeometry>
-        <animated.pointsMaterial
+          <bufferAttribute
+            attachObject={['attributes', 'color']}
+            count={points.length / 3}
+            array={colorsArray}
+            itemSize={3}
+            usage={THREE.DynamicDrawUsage}
+            // normalized={true}
+          />
+        </bufferGeometry>
+        <pointsMaterial
           attach='material'
           size={pointsSize}
           map={sprite}
           transparent={true}
           alphaTest={0.5}
-          {...colorProps}
+          sizeAttenuation={false}
+          vertexColor={THREE.VertexColors}
         />
       </points>
     </mesh>
@@ -102,12 +141,23 @@ const Scene = ({ points }) => {
 
 const App = () => {
   const [ points, setPoints ] = useState(getRandomPoints());
+  const [ colors, setColors ] = useState(getRandomColors());
   return (
     <div className='canvas-container'>
       <Canvas>
-        <Scene points={points}/>
+        <Scene
+          points={points}
+          colors={colors}
+        />
       </Canvas>
       <div className='button-container'>
+        <button
+          type='button'
+          className='btn btn-primary'
+          onClick={() => setColors(getRandomColors())}
+        >
+          Change colors
+        </button>
         <button
           type='button'
           className='btn btn-primary'

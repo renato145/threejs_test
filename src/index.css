@@ -23,3 +23,7 @@ html, body, #root {
   text-align: right;
   padding-right: 10px;
 }
+
+.button-container button {
+  margin-right: 8px;
+}
