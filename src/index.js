@@ -1,5 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.css';
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Canvas, useThree,  useFrame } from 'react-three-fiber';
 import { useSpring } from 'react-spring-three';
@@ -123,6 +123,35 @@ const Scene = ({ points, colors }) => {
 const App = () => {
   const [ points, setPoints ] = useState(getRandomPoints());
   const [ colors, setColors ] = useState(getRandomColors());
+  const [ animatePoints, setAnimatePoints ] = useState(false);
+  const [ animateColors, setAnimateColors ] = useState(false);
+  const [ toogleColorsClass, setToogleColorsClass ] = useState('light');
+  const [ tooglePointsClass, setTooglePointsClass ] = useState('light');
+
+  const tooglePoints = () => {
+    if ( !animatePoints ) {
+      const interval = window.setInterval(() => setPoints(getRandomPoints()), 1000);
+      setAnimatePoints(interval);
+      setTooglePointsClass('dark');
+    } else {
+      clearInterval(animatePoints);
+      setAnimatePoints(false);
+      setTooglePointsClass('light');
+    }
+  };
+
+  const toogleColors = () => {
+    if ( !animateColors ) {
+      const interval = window.setInterval(() => setColors(getRandomColors()), 1000);
+      setAnimateColors(interval);
+      setToogleColorsClass('dark');
+    } else {
+      clearInterval(animateColors);
+      setAnimateColors(false);
+      setToogleColorsClass('light');
+    }
+  };
+
   return (
     <div className='canvas-container'>
       <Canvas>
@@ -134,17 +163,31 @@ const App = () => {
       <div className='button-container'>
         <button
           type='button'
-          className='btn btn-primary'
+          className='btn btn-light'
           onClick={() => setColors(getRandomColors())}
         >
           Change colors
         </button>
         <button
           type='button'
-          className='btn btn-primary'
+          className={`btn btn-${toogleColorsClass}`}
+          onClick={() => toogleColors()}
+        >
+          Toogle colors
+        </button>
+        <button
+          type='button'
+          className='btn btn-light'
           onClick={() => setPoints(getRandomPoints())}
         >
           Refresh
+        </button>
+        <button
+          type='button'
+          className={`btn btn-${tooglePointsClass}`}
+          onClick={() => tooglePoints()}
+        >
+          Toogle Refresh
         </button>
       </div>
     </div>
