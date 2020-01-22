@@ -1,5 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.css';
-import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Canvas, useThree,  useFrame } from 'react-three-fiber';
 import { useSpring } from 'react-spring-three';
@@ -40,6 +40,7 @@ const getRandomColors = () => {
 
 const Scene = ({ points, colors }) => {
   const { scene, camera, aspect } = useThree();
+  const ref = useRef();
   const geometryRef = useRef();
 
   // Initialize arrays
@@ -56,6 +57,7 @@ const Scene = ({ points, colors }) => {
   // Animation effects
   useEffect(() => {
     setSpring({ pointsSpring: points });
+    console.log(ref.current);
   }, [ points, setSpring ]);
 
   useEffect(() => {
@@ -85,8 +87,18 @@ const Scene = ({ points, colors }) => {
   }, [ scene, camera ]);
 
   return (
-    <mesh>
-      <points>
+    <mesh
+      ref={ref}
+      onPointerUp={e => console.log('up')}
+      onPointerDown={e => console.log('down')}
+      onPointerOver={e => console.log('over')}
+      onPointerOut={e => console.log('out')}
+      onPointerEnter={e => console.log('enter')}
+      onPointerLeave={e => console.log('leave')}
+      onPointerMove={e => console.log('move')}
+    >
+      <points
+      >
         <bufferGeometry
           attach='geometry'
           ref={geometryRef}
