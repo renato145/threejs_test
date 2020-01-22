@@ -19,7 +19,7 @@ const defaultCameraZoom = 100;
 const nPoints = 100;
 const randomScale = 50;
 const pointsSize = 25;
-const colors = ['mediumslateblue', 'indianred'];
+const colors = ['#ffd700', '#ffb14e', '#fa8775', '#ea5f94', '#cd34b5', '#9d02d7', '#0000ff'];
 const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png');
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
@@ -86,8 +86,10 @@ const Scene = ({ points, colors, pointsData, setHoverDescription }) => {
 
   // Events
   const pointOver = ( { index, clientX, clientY } ) => {
+    const { idxs } = pointsData;
+    const pointColor = colors.slice(index*3, (index+1)*3).map(d => d.toFixed(2));
     setHoverDescription(HoverDescription({
-      description: `mouse over: ${pointsData[index]}`,
+    description: `mouse over: ${idxs[index]}\nColor: rgb(${pointColor})`,
       top: clientY,
       left: clientX,
     }));
@@ -145,7 +147,9 @@ const App = () => {
   const [ toogleColorsClass, setToogleColorsClass ] = useState('light');
   const [ tooglePointsClass, setTooglePointsClass ] = useState('light');
   const [ hoverData, setHoverData] = useState('');
-  const pointsData = useMemo(() => [...Array(nPoints).keys()].map(d => `Points #${d}`), []);
+  const pointsData = useMemo(() => ({
+    idxs: [...Array(nPoints).keys()].map(d => `Points #${d}`),
+  }), []);
 
   const setHoverDescription = data => {
     setHoverData(data)
