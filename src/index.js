@@ -1,24 +1,26 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { Canvas, useThree,  useFrame } from 'react-three-fiber';
+import { Canvas, useThree, useFrame } from 'react-three-fiber';
 import { useSpring } from 'react-spring-three';
+import { HoverDescription } from './HoverDescription';
+import { Controls } from './Controls';
 import './index.css';
+
 const THREE = require('three');
 // const d3 = require('d3');
 
 // camera settings
 const fov = 30;
 const near = 10;
-const far = 100;
+const far = 1000;
+const defaultCameraZoom = 100;
 // points generation
 const nPoints = 100;
 const randomScale = 50;
 const pointsSize = 25;
-const colors = ['mediumslateblue', 'indianred', 'darkseagreen'];
-const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png')
-// hover description settings
-const hoverWidth = 150;
+const colors = ['mediumslateblue', 'indianred'];
+const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png');
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
 
@@ -40,19 +42,8 @@ const getRandomColors = () => {
   return colors;
 };
 
-const HoverDescription = ({ description, top, left }) => {
-  const showLeft = Math.max(left-hoverWidth/2, 0);
-  return (
-  <div
-    className='hover-description'
-    style={{top: top, left: showLeft, width: hoverWidth}}
-  >
-    {description}
-  </div>);
-};
-
 const Scene = ({ points, colors, pointsData, setHoverDescription }) => {
-  const { scene, camera, aspect } = useThree();
+  const { scene, aspect } = useThree();
   const ref = useRef();
   const geometryRef = useRef();
 
@@ -90,13 +81,8 @@ const Scene = ({ points, colors, pointsData, setHoverDescription }) => {
   });
 
   useEffect(() => {
-    camera.fov = fov;
-    camera.near = near;
-    camera.far = far;
-    camera.position.set(0, 0, far);
-    camera.updateProjectionMatrix();
     scene.background = new THREE.Color(0xefefef);
-  }, [ scene, camera ]);
+  }, [ scene ]);
 
   // Events
   const pointOver = ( { index, clientX, clientY } ) => {
@@ -192,12 +178,23 @@ const App = () => {
 
   return (
     <div className='canvas-container'>
-      <Canvas>
+      <Canvas
+        camera={{
+          fov: fov,
+          near: near,
+          far: far,
+          position: [0, 0, defaultCameraZoom]
+        }}
+      >
         <Scene
           points={points}
           colors={colors}
           pointsData={pointsData}
           setHoverDescription={setHoverDescription}
+        />
+        <Controls
+          far={far}
+          near={near}
         />
       </Canvas>
       {hoverData}
