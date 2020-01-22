@@ -17,6 +17,8 @@ const randomScale = 50;
 const pointsSize = 25;
 const colors = ['mediumslateblue', 'indianred', 'darkseagreen'];
 const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png')
+// hover description settings
+const hoverWidth = 150;
 
 const getRandomNumber = () => (Math.random()-0.5)*randomScale;
 
@@ -38,7 +40,18 @@ const getRandomColors = () => {
   return colors;
 };
 
-const Scene = ({ points, colors }) => {
+const HoverDescription = ({ description, top, left }) => {
+  const showLeft = Math.max(left-hoverWidth/2, 0);
+  return (
+  <div
+    className='hover-description'
+    style={{top: top, left: showLeft, width: hoverWidth}}
+  >
+    {description}
+  </div>);
+};
+
+const Scene = ({ points, colors, pointsData, setHoverDescription }) => {
   const { scene, camera, aspect } = useThree();
   const ref = useRef();
   const geometryRef = useRef();
@@ -50,14 +63,13 @@ const Scene = ({ points, colors }) => {
   // Initialize springs
   const [ { pointsSpring, colorsSpring }, setSpring ] = useSpring(() => ({
     // initial position
-    pointsSpring: new Array(nPoints*3).fill(0),
-    colorsSpring: new Array(nPoints*3).fill(1)
+    pointsSpring: points,
+    colorsSpring: Array(nPoints*3).fill(1),
   }));
 
   // Animation effects
   useEffect(() => {
     setSpring({ pointsSpring: points });
-    console.log(ref.current);
   }, [ points, setSpring ]);
 
   useEffect(() => {
@@ -86,19 +98,26 @@ const Scene = ({ points, colors }) => {
     scene.background = new THREE.Color(0xefefef);
   }, [ scene, camera ]);
 
+  // Events
+  const pointOver = ( { index, clientX, clientY } ) => {
+    setHoverDescription(HoverDescription({
+      description: `mouse over: ${pointsData[index]}`,
+      top: clientY,
+      left: clientX,
+    }));
+  };
+
+  const pointOut = () => {
+    setHoverDescription('');
+  };
+
   return (
     <mesh
       ref={ref}
-      onPointerUp={e => console.log('up')}
-      onPointerDown={e => console.log('down')}
-      onPointerOver={e => console.log('over')}
-      onPointerOut={e => console.log('out')}
-      onPointerEnter={e => console.log('enter')}
-      onPointerLeave={e => console.log('leave')}
-      onPointerMove={e => console.log('move')}
+      onPointerOver={pointOver}
+      onPointerOut={pointOut}
     >
-      <points
-      >
+      <points>
         <bufferGeometry
           attach='geometry'
           ref={geometryRef}
@@ -139,7 +158,14 @@ const App = () => {
   const [ animateColors, setAnimateColors ] = useState(false);
   const [ toogleColorsClass, setToogleColorsClass ] = useState('light');
   const [ tooglePointsClass, setTooglePointsClass ] = useState('light');
+  const [ hoverData, setHoverData] = useState('');
+  const pointsData = useMemo(() => [...Array(nPoints).keys()].map(d => `Points #${d}`), []);
 
+  const setHoverDescription = data => {
+    setHoverData(data)
+  };
+
+  // toogle functions
   const tooglePoints = () => {
     if ( !animatePoints ) {
       const interval = window.setInterval(() => setPoints(getRandomPoints()), 1000);
@@ -170,8 +196,11 @@ const App = () => {
         <Scene
           points={points}
           colors={colors}
+          pointsData={pointsData}
+          setHoverDescription={setHoverDescription}
         />
       </Canvas>
+      {hoverData}
       <div className='button-container'>
         <button
           type='button'
