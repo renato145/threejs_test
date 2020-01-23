@@ -4,9 +4,8 @@ import ReactDOM from 'react-dom';
 import { Canvas, useThree, useFrame } from 'react-three-fiber';
 import { useSpring } from 'react-spring-three';
 import { HoverDescription } from './HoverDescription';
-import { Controls } from './Controls';
+import { d3Controls } from './d3Controls';
 import './index.css';
-
 const THREE = require('three');
 // const d3 = require('d3');
 
@@ -15,6 +14,8 @@ const fov = 30;
 const near = 10;
 const far = 1000;
 const defaultCameraZoom = 100;
+// canvas settings
+const backgroundColor = new THREE.Color(0xefefef)
 // points generation
 const nPoints = 100;
 const randomScale = 50;
@@ -42,10 +43,15 @@ const getRandomColors = () => {
   return colors;
 };
 
-const Scene = ({ points, colors, pointsData, setHoverDescription }) => {
-  const { scene, aspect } = useThree();
+const Scene = ({ points, colors, pointsData, setHoverData }) => {
+  const { scene, aspect, gl, camera, size } = useThree();
   const ref = useRef();
   const geometryRef = useRef();
+
+  // d3 controls (zoom and pan)
+  useEffect(() => {
+    d3Controls({ fov, near, far, defaultCameraZoom, renderer: gl, camera, size});
+  }, [ gl, camera, size ])
 
   // Initialize arrays
   const positionsArray = useMemo(() => new Float32Array(nPoints*3), []);
@@ -81,14 +87,14 @@ const Scene = ({ points, colors, pointsData, setHoverDescription }) => {
   });
 
   useEffect(() => {
-    scene.background = new THREE.Color(0xefefef);
+    scene.background = backgroundColor;
   }, [ scene ]);
 
   // Events
   const pointOver = ( { index, clientX, clientY } ) => {
     const { idxs } = pointsData;
     const pointColor = colors.slice(index*3, (index+1)*3).map(d => d.toFixed(2));
-    setHoverDescription(HoverDescription({
+    setHoverData(HoverDescription({
     description: `mouse over: ${idxs[index]}\nColor: rgb(${pointColor})`,
       top: clientY,
       left: clientX,
@@ -96,7 +102,7 @@ const Scene = ({ points, colors, pointsData, setHoverDescription }) => {
   };
 
   const pointOut = () => {
-    setHoverDescription('');
+    setHoverData('');
   };
 
   return (
@@ -151,10 +157,6 @@ const App = () => {
     idxs: [...Array(nPoints).keys()].map(d => `Points #${d}`),
   }), []);
 
-  const setHoverDescription = data => {
-    setHoverData(data)
-  };
-
   // toogle functions
   const tooglePoints = () => {
     if ( !animatePoints ) {
@@ -194,11 +196,7 @@ const App = () => {
           points={points}
           colors={colors}
           pointsData={pointsData}
-          setHoverDescription={setHoverDescription}
-        />
-        <Controls
-          far={far}
-          near={near}
+          setHoverData={setHoverData}
         />
       </Canvas>
       {hoverData}
