@@ -7,7 +7,7 @@ import { HoverDescription } from './HoverDescription';
 import { d3Controls } from './d3Controls';
 import './index.css';
 const THREE = require('three');
-// const d3 = require('d3');
+const d3 = require('d3');
 
 // camera settings
 const fov = 30;
@@ -44,8 +44,9 @@ const getRandomColors = () => {
 };
 
 const Scene = ({ points, colors, pointsData, setHoverData }) => {
-  const { scene, aspect, gl, camera, size } = useThree();
+  const { scene, aspect, gl, camera, size, mouse } = useThree();
   const ref = useRef();
+  const pointsRef = useRef();
   const geometryRef = useRef();
 
   // d3 controls (zoom and pan)
@@ -90,8 +91,43 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
     scene.background = backgroundColor;
   }, [ scene ]);
 
-  // Events
+  // Hover events
+  const [ hoverIdx, setHoverIdx ] = useState(0);
+
+  useEffect(() => {
+    const view = d3.select(gl.domElement);
+    view.on('mousemove', () => {
+      checkIntersects(mouse);
+    });
+  }, [ gl, mouse ]);
+
+  const raycaster = useMemo(() => {
+    const raycaster = new THREE.Raycaster();
+    raycaster.params.Points.threshold = 1;
+    return raycaster;
+  }, []);
+
+  const checkIntersects = position => {
+    raycaster.setFromCamera(position, camera);
+    let intersects = raycaster.intersectObject(pointsRef.current);
+    if (intersects[0]) {
+      const intersect = intersects.sort(({ distanceToRay }) => distanceToRay)[0];
+      let index = intersect.index;
+      pointOver({ index, clientX: 0, clientY:0});
+      // let datum = generated_points[index];
+      // highlightPoint(datum);
+      // showTooltip(mouse_position, datum);
+    } else {
+      pointOut();
+      // removeHighlights();
+      // hideTooltip();
+    }
+  };
+
   const pointOver = ( { index, clientX, clientY } ) => {
+    setHoverIdx(index);
+    const a = new Float32Array(points.slice(hoverIdx*3,(hoverIdx+1)*3));
+    console.log(a, hoverIdx, index);
     const { idxs } = pointsData;
     const pointColor = colors.slice(index*3, (index+1)*3).map(d => d.toFixed(2));
     setHoverData(HoverDescription({
@@ -102,46 +138,72 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
   };
 
   const pointOut = () => {
+    // setHoverIdx(-1);
     setHoverData('');
   };
 
   return (
-    <mesh
-      ref={ref}
-      onPointerOver={pointOver}
-      onPointerOut={pointOut}
-    >
-      <points>
-        <bufferGeometry
-          attach='geometry'
-          ref={geometryRef}
-        >
-          <bufferAttribute
-            attachObject={['attributes', 'position']}
-            count={points.length / 3}
-            array={positionsArray}
-            itemSize={3}
-            usage={THREE.DynamicDrawUsage}
+    <group>
+
+      <mesh ref={ref}>
+        <points ref={pointsRef}>
+          <bufferGeometry
+            attach='geometry'
+            ref={geometryRef}
+          >
+            <bufferAttribute
+              attachObject={['attributes', 'position']}
+              count={points.length / 3}
+              array={positionsArray}
+              itemSize={3}
+              usage={THREE.DynamicDrawUsage}
+            />
+            <bufferAttribute
+              attachObject={['attributes', 'color']}
+              count={points.length / 3}
+              array={colorsArray}
+              itemSize={3}
+              usage={THREE.DynamicDrawUsage}
+            />
+          </bufferGeometry>
+          <pointsMaterial
+            attach='material'
+            size={pointsSize}
+            map={sprite}
+            transparent={true}
+            alphaTest={0.5}
+            sizeAttenuation={false}
+            vertexColors={THREE.VertexColors}
           />
-          <bufferAttribute
-            attachObject={['attributes', 'color']}
-            count={points.length / 3}
-            array={colorsArray}
-            itemSize={3}
-            usage={THREE.DynamicDrawUsage}
+        </points>
+      </mesh>
+
+      <mesh>
+        <points>
+          <bufferGeometry
+            attach='geometry'
           />
-        </bufferGeometry>
-        <pointsMaterial
-          attach='material'
-          size={pointsSize}
-          map={sprite}
-          transparent={true}
-          alphaTest={0.5}
-          sizeAttenuation={false}
-          vertexColors={THREE.VertexColors}
-        />
-      </points>
-    </mesh>
+            <bufferAttribute
+              attachObject={['attributes', 'position']}
+              count={1}
+              array={new Float32Array(points.slice(hoverIdx*3,(hoverIdx+1)*3))}
+              itemSize={3}
+              usage={THREE.DynamicDrawUsage}
+            /> 
+          <pointsMaterial
+            attach='material'
+            size={80}
+            map={sprite}
+            color='hotpink'
+            transparent={true}
+            alphaTest={0.5}
+            sizeAttenuation={false}
+          />
+        </points>
+      </mesh>
+
+    </group>
+
   );
 };
 
