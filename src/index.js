@@ -16,7 +16,7 @@ const near = 10;
 const far = 1000;
 const defaultCameraZoom = 100;
 // canvas settings
-const backgroundColor = new THREE.Color(0xefefef)
+const backgroundColor = new THREE.Color(0xefefef);
 // points generation
 const nPoints = 100;
 const randomScale = 50;
