@@ -30,7 +30,6 @@ export const useCustomHover = ({
       if (intersects[0]) {
         const intersect = intersects.sort(({ distanceToRay }) => distanceToRay)[0];
         const point = intersect.point;
-        // point.subScalar(0.5).multiplyScalar(2).unproject(camera);
         point.project(camera).addScalar(1).divideScalar(2);
         const x = point.x * width;
         const y = (1-point.y) * height;

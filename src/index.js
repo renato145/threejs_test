@@ -8,7 +8,7 @@ import { d3Controls } from './d3Controls';
 import { useCustomHover } from './useCustomHover';
 import './index.css';
 const THREE = require('three');
-const d3 = require('d3');
+// const d3 = require('d3');
 
 // camera settings
 const fov = 30;
@@ -21,6 +21,7 @@ const backgroundColor = new THREE.Color(0xefefef)
 const nPoints = 100;
 const randomScale = 50;
 const pointsSize = 25;
+const highlightPointSize = 40;
 const colors = ['#ffd700', '#ffb14e', '#fa8775', '#ea5f94', '#cd34b5', '#9d02d7', '#0000ff'];
 const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png');
 
@@ -56,22 +57,33 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
   }, [ gl, camera, size ])
 
   // Custom hover
-  const [ hoverIdx, setHoverIdx ] = useState(0);
+  const highlightRef = useRef();
+  const highlightPoint = useMemo(() => ({
+    point: new Float32Array(3),
+    color: new Float32Array(3),
+    show: false,
+  }), []);
+
   const onPointHover = ( { index, x, y } ) => {
-    // setHoverIdx(index);
-    // const a = new Float32Array(points.slice(hoverIdx*3,(hoverIdx+1)*3));
-    // console.log(a, hoverIdx, index);
+    // Highlight Point
+    positionsArray.slice(index*3,(index+1)*3).forEach( (d, i) => {highlightPoint.point[i] = d});
+    colorsArray.slice(index*3,(index+1)*3).forEach( (d, i) => {highlightPoint.color[i] = d});
+    highlightPoint.show = true;
     const { idxs } = pointsData;
+    highlightRef.current.attributes.position.needsUpdate = true;
+    highlightRef.current.attributes.color.needsUpdate = true;
+
+    // hover description
     const pointColor = colors.slice(index*3, (index+1)*3).map(d => d.toFixed(2));
     setHoverData(HoverDescription({
-    description: `mouse over: ${idxs[index]}\nColor: rgb(${pointColor})`,
+      description: `mouse over: ${idxs[index]}\nColor: rgb(${pointColor})`,
       top: y,
       left: x,
     }));
   };
 
   const onPointOut = () => {
-    // setHoverIdx(-1);
+    highlightPoint.show = false;
     setHoverData('');
   };
 
@@ -101,10 +113,10 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
   useFrame(() => {
     pointsSpring.getValue().forEach((v,i) => {
       const value = (i%3) === 0 ? v*aspect : v; // consider aspect
-      geometryRef.current.attributes.position.array[i] = value;
+      positionsArray[i] = value;
     });
     colorsSpring.getValue().forEach((v,i) => {
-      geometryRef.current.attributes.color.array[i] = v;
+      colorsArray[i] = v;
     })
     geometryRef.current.attributes.position.needsUpdate = true;
     geometryRef.current.attributes.color.needsUpdate = true;
@@ -154,22 +166,31 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
         <points>
           <bufferGeometry
             attach='geometry'
-          />
+            ref={highlightRef}
+          >
             <bufferAttribute
               attachObject={['attributes', 'position']}
-              count={1}
-              array={new Float32Array(points.slice(hoverIdx*3,(hoverIdx+1)*3))}
+              count={highlightPoint.show}
+              array={highlightPoint.point}
               itemSize={3}
               usage={THREE.DynamicDrawUsage}
             /> 
+            <bufferAttribute
+              attachObject={['attributes', 'color']}
+              count={1}
+              array={highlightPoint.color}
+              itemSize={3}
+              usage={THREE.DynamicDrawUsage}
+            />
+          </bufferGeometry>
           <pointsMaterial
             attach='material'
-            size={80}
+            size={highlightPointSize}
             map={sprite}
-            color='hotpink'
             transparent={true}
             alphaTest={0.5}
             sizeAttenuation={false}
+            vertexColors={THREE.VertexColors}
           />
         </points>
       </mesh>
@@ -234,6 +255,9 @@ const App = () => {
         />
       </Canvas>
       {hoverData}
+      <div className='git-info'>
+        <a href='https://github.com/renato145/threejs_test'>Source code</a>
+      </div>
       <div className='button-container'>
         <button
           type='button'
