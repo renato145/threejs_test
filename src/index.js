@@ -1,5 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.css';
-import React, { useRef, useMemo, useState, useEffect } from 'react';
+import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Canvas, useThree, useFrame } from 'react-three-fiber';
 import { useSpring } from 'react-spring-three';
@@ -64,7 +64,8 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
     show: false,
   }), []);
 
-  const onPointHover = ( { index, x, y } ) => {
+  // const onPointHover = ( { index, x, y } ) => {
+  const onPointHover = useCallback(( { index, x, y } ) => {
     // Highlight Point
     positionsArray.slice(index*3,(index+1)*3).forEach( (d, i) => {highlightPoint.point[i] = d});
     colorsArray.slice(index*3,(index+1)*3).forEach( (d, i) => {highlightPoint.color[i] = d});
@@ -81,7 +82,7 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
       left: x,
       size
     }));
-  };
+  }, [ points, size ]);
 
   const onPointOut = () => {
     highlightPoint.show = false;
@@ -239,55 +240,59 @@ const App = () => {
   };
 
   return (
-    <div className='canvas-container'>
-      <Canvas
-        camera={{
-          fov: fov,
-          near: 0.1,
-          far: far+1,
-          position: [0, 0, defaultCameraZoom]
-        }}
-      >
-        <Scene
-          points={points}
-          colors={colors}
-          pointsData={pointsData}
-          setHoverData={setHoverData}
-        />
-      </Canvas>
-      {hoverData}
-      <div className='git-info'>
-        <a href='https://github.com/renato145/threejs_test'>Source code</a>
-      </div>
-      <div className='button-container'>
-        <button
-          type='button'
-          className='btn btn-light'
-          onClick={() => setColors(getRandomColors())}
+    <div style={{height: '100%'}}>
+      <div className='canvas-container h-100'>
+        <Canvas
+          camera={{
+            fov: fov,
+            near: 0.1,
+            far: far+1,
+            position: [0, 0, defaultCameraZoom]
+          }}
         >
-          Change colors
-        </button>
-        <button
-          type='button'
-          className={`btn btn-${toogleColorsClass}`}
-          onClick={() => toogleColors()}
-        >
-          Toogle colors
-        </button>
-        <button
-          type='button'
-          className='btn btn-light'
-          onClick={() => setPoints(getRandomPoints())}
-        >
-          Refresh
-        </button>
-        <button
-          type='button'
-          className={`btn btn-${tooglePointsClass}`}
-          onClick={() => tooglePoints()}
-        >
-          Toogle Refresh
-        </button>
+          <Scene
+            points={points}
+            colors={colors}
+            pointsData={pointsData}
+            setHoverData={setHoverData}
+          />
+        </Canvas>
+        {hoverData}
+        <div className='row'>
+          <div className='git-info col'>
+            <a href='https://github.com/renato145/threejs_test'>Source code</a>
+          </div>
+          <div className='button-container col'>
+            <button
+              type='button'
+              className='btn btn-light'
+              onClick={() => setColors(getRandomColors())}
+            >
+              Change colors
+            </button>
+            <button
+              type='button'
+              className={`btn btn-${toogleColorsClass}`}
+              onClick={() => toogleColors()}
+            >
+              Toogle colors
+            </button>
+            <button
+              type='button'
+              className='btn btn-light'
+              onClick={() => setPoints(getRandomPoints())}
+            >
+              Refresh
+            </button>
+            <button
+              type='button'
+              className={`btn btn-${tooglePointsClass}`}
+              onClick={() => tooglePoints()}
+            >
+              Toogle Refresh
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
