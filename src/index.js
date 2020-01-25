@@ -12,15 +12,15 @@ const THREE = require('three');
 
 // camera settings
 const fov = 30;
-const near = 10;
-const far = 1000;
+const near = 20;
+const far = 150;
 const defaultCameraZoom = 100;
 // canvas settings
 const backgroundColor = new THREE.Color(0xefefef);
 // points generation
 const nPoints = 100;
 const randomScale = 50;
-const pointsSize = 25;
+const pointsSize = 15;
 const highlightPointSize = 40;
 const colors = ['#ffd700', '#ffb14e', '#fa8775', '#ea5f94', '#cd34b5', '#9d02d7', '#0000ff'];
 const sprite = new THREE.TextureLoader().load('textures/discNoShadow.png');
@@ -242,8 +242,8 @@ const App = () => {
       <Canvas
         camera={{
           fov: fov,
-          near: near,
-          far: far,
+          near: 0.1,
+          far: far+1,
           position: [0, 0, defaultCameraZoom]
         }}
       >
