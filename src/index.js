@@ -79,6 +79,7 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
       description: `mouse over: ${idxs[index]}\nColor: rgb(${pointColor})`,
       top: y,
       left: x,
+      size
     }));
   };
 
