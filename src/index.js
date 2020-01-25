@@ -64,7 +64,6 @@ const Scene = ({ points, colors, pointsData, setHoverData }) => {
     show: false,
   }), []);
 
-  // const onPointHover = ( { index, x, y } ) => {
   const onPointHover = useCallback(( { index, x, y } ) => {
     // Highlight Point
     positionsArray.slice(index*3,(index+1)*3).forEach( (d, i) => {highlightPoint.point[i] = d});
