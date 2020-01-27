@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useCallback } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import { select } from 'd3';
 const THREE = require('three');
 
@@ -30,7 +30,7 @@ export const useCustomHover = ({
     } else {
       onPointOut();
     }
-  }, [ size ]);
+  }, [ size, onPointHover ]);
 
   useEffect(() => {
     const view = select(renderer.domElement);
@@ -39,6 +39,5 @@ export const useCustomHover = ({
     });
   }, [ renderer, mouse, checkIntersects ]);
 
-  // const checkIntersects = position => {
 };
 
