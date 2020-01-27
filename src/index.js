@@ -258,10 +258,10 @@ const App = () => {
         </Canvas>
         {hoverData}
         <div className='row'>
-          <div className='git-info col'>
+          <div className='git-info col-3 align-self-center'>
             <a href='https://github.com/renato145/threejs_test'>Source code</a>
           </div>
-          <div className='button-container col'>
+          <div className='button-container col-9'>
             <button
               type='button'
               className='btn btn-light'
