@@ -14,7 +14,7 @@
     "react-scripts": "3.3.0",
     "react-spring-three": "^1.0.4",
     "react-three-fiber": "^4.0.8",
-    "three": "^0.112.1"
+    "three": "^0.125.0"
   },
   "scripts": {
     "start": "react-scripts start",
